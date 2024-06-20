@@ -1,30 +1,45 @@
 #!/usr/bin/python3
+
 """Script that reads stdin line by line and computes metrics"""
 
 import sys
-import signal
 
 
-def print_stats(total_size, status_counts):
-    """
-    Print the total file size and number of lines by status code.
-    """
-    print(f"File size: {total_size}")
-    for code in sorted(status_counts):
-        print(f"{code}: {status_counts[code]}")
+def printsts(dic, size):
+    """ WWPrints information """
+    print("File size: {:d}".format(size))
+    for i in sorted(dic.keys()):
+        if dic[i] != 0:
+            print("{}: {:d}".format(i, dic[i]))
 
 
-def parse_line(line):
-    """
-    Parse a log line and extract the status code and file size.
-    Return a tuple (status_code, file_size) if valid, else None.
-    """
-    try:
-        parts = line.split()
-        if len(parts) < 9:
-            return None
-        status_code = int(parts[-2])
-        file_size = int(parts[-1])
-        return status_code, file_size
-    except (IndexError, ValueError):
-        return None
+sts = {"200": 0, "301": 0, "400": 0, "401": 0, "403": 0,
+       "404": 0, "405": 0, "500": 0}
+
+count = 0
+size = 0
+
+try:
+    for line in sys.stdin:
+        if count != 0 and count % 10 == 0:
+            printsts(sts, size)
+
+        stlist = line.split()
+        count += 1
+
+        try:
+            size += int(stlist[-1])
+        except:
+            pass
+
+        try:
+            if stlist[-2] in sts:
+                sts[stlist[-2]] += 1
+        except:
+            pass
+    printsts(sts, size)
+
+
+except KeyboardInterrupt:
+    printsts(sts, size)
+    raise
